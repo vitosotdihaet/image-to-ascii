@@ -19,7 +19,7 @@ if inverse:
     brightness = brightness[::-1]
 
 l = len(brightness)
-compression = 0.1
+compression = 0.5
 
 image = Image.open('i.jpg')
 x, y = image.size
@@ -37,8 +37,10 @@ for r in range(y):
         gray = int(colors[0] * 0.3 + colors[1] * 0.5 + colors[2] * 0.2)
         cp = brightness[int(l * (gray - 1)/256)]
         f.write(cp)
-        print(cp, end='')
+        if terminal_output:
+            print(cp, end='')
     f.write('\n')
-    print()
+    if terminal_output:
+        print()
 
 f.close()
