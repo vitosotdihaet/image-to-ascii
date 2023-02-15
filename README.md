@@ -1,12 +1,24 @@
 # Image To ASCII
-Outputs an image to `o.txt` and/or to terminal drawn with ASCII symbols using python and pillow
+Outputs an image to a file in `cwd` named `out-<current-time>.txt` or to terminal drawn with ASCII symbols using python and pillow
 
-To run the program just put`i.jpg` in the same folder as `main.py`
+To run the program just run the following lines in your terminal:
 
-After running the program you can copy ASCII repesentation of your image from the output file or terminal
+```
+python3 main.py <path-to-image>
+```
+
+After doing so you can copy ASCII repesentation of your image from the file or terminal
 
 ## Options
-You can change some values (i.e. `compression` so you can make your ASCII art really small) in `main.py` to change the output
+Flags:
+
+`-s`/`--save` -- save ASCII art to a file (bool)
+
+`-c`/`--compression` -- determine how compressed your ASCII art compared to target image (float)
+
+`-b`/`--inverse` -- inverse brightness (bool)
+
+`-w`/`--width` -- change width of every pixel (because height of glyphs != its width) (float)
 
 ## Preview
 From:
