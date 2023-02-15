@@ -14,7 +14,7 @@ parser.add_argument("path")
 parser.add_argument("-c", "--compression", default=DEFAULT_COMPRESSION, type=float)
 parser.add_argument("-s", "--save", action="store_true")
 parser.add_argument("-b", "--inverse", action="store_true")
-parser.add_argument("-r", "--ratio", default=DEFAULT_RATIO, type=float)
+parser.add_argument("-w", "--width", default=DEFAULT_RATIO, type=float)
 
 args = parser.parse_args()
 
@@ -43,7 +43,7 @@ l = len(brightness)
 image = Image.open(target_img)
 x, y = image.size
 
-x, y = int(100 * compression * args.ratio), int(y/(x/100) * compression)
+x, y = int(100 * compression * args.width), int(y/(x/100) * compression)
 
 image = image.resize((x, y))
 
