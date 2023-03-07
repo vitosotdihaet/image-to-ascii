@@ -32,7 +32,7 @@ terminal_output = not args.save
 
 compression = args.compression
 
-if not terminal_output: f = open(f'out-{time()}.txt', 'w')
+if not terminal_output: f = open(target_img.name[:-4] + '.txt', 'w')
 
 brightness = '8@#DZL]waxv?1(/|=+*":_-,.`  '[::-1]
 if inverse_brightness:
