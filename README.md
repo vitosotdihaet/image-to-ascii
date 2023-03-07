@@ -12,13 +12,13 @@ After doing so you can copy ASCII repesentation of your image from the file or t
 ## Options
 Flags:
 
-`-s`/`--save` -- save ASCII art to a file (bool)
+`-s`/`--save` -- save ASCII art to a file
 
-`-c`/`--compression` -- determine how compressed your ASCII art compared to target image (float)
+`-c`/`--compression [FLOAT]` -- determine how compressed your ASCII art compared to target image
 
-`-b`/`--inverse` -- inverse brightness (bool)
+`-b`/`--inverse` -- inverse brightness
 
-`-w`/`--width` -- change width of every pixel (because height of glyphs != its width) (float)
+`-w`/`--width [FLOAT]` -- change width of every pixel (because height of glyphs != its width)
 
 ## Preview
 From:
