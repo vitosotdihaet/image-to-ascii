@@ -4,14 +4,16 @@ from common import *
 
 
 class Matrix:
-    # TODO: add often edge detection constants
-
     def __init__(self, data):
         if len(data) % 2 != 1 or len(data) != len(data[0]):
             raise ValueError
 
         self.n = len(data)
         self.data = data
+    
+    def default(self):
+        self.n = 0
+        self.data = []
 
     def apply_on_image(self, img: Image.Image, func):
         width, height = img.size
@@ -39,3 +41,21 @@ class Matrix:
         for y in range(self.n):
             for x in range(self.n):
                 self.data[y][x] += other.data[y][x]
+
+class MatrixConstants:
+    UNWEIGHTED = Matrix([[1]])
+    HORIZONTAL = Matrix([
+        [ 0, 0, 0],
+        [-1, 0, 1],
+        [ 0, 0, 0]
+    ])
+    VERTICAL = Matrix([
+        [0, -1, 0],
+        [0,  0, 0],
+        [0,  1, 0],
+    ])
+    SOME = Matrix([
+        [-1, -2,  1],
+        [-2,  0,  2],
+        [-1,  2,  1]
+    ])

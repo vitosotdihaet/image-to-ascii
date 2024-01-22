@@ -1,11 +1,10 @@
 from PIL import Image
 from pathlib import Path
-from time import time
 
 import argparse
 
 from common import *
-from matrix import *
+from matrix import MatrixConstants
 
 
 DEFAULT_COMPRESSION = 0.5
@@ -45,43 +44,45 @@ if not terminal_output: f = open(target_img.name[:-4] + '.txt', 'w')
 
 
 image = Image.open(target_img)
+
+exif = dict(image._getexif().items())
+orientation_id = 0x0112 # https://www.media.mit.edu/pia/Research/deepview/exif.html
+
+if exif[orientation_id] == 3:
+    image=image.rotate(180, expand=True)
+elif exif[orientation_id] == 6:
+    image=image.rotate(270, expand=True)
+elif exif[orientation_id] == 8:
+    image=image.rotate(90, expand=True)
+
+
 width, height = image.size
 
 width, height = int(100 * compression * args.width), int(height/(width/100) * compression)
 image = image.resize((width, height))
 image = image.convert('RGB')
 
-m = Matrix([
-    [-1, -2,  1],
-    [-2,  0,  2],
-    [-1,  2,  1]
-])
+m = MatrixConstants.HORIZONTAL
 
-# m = Matrix([
-#     [   0, 0,   0],
-#     [-0.5, 0, 0.5],
-#     [   0, 0,   0]
-# ])
-
-out = m.apply_on_image(image, func=grayscale)
+ascii_img = m.apply_on_image(image, func=diff)
 
 # mini = 10e9
 maxi = -10e9
 
-for row in out:
+for row in ascii_img:
     for pixel in row:
         # mini = min(pixel, mini)
         maxi = max(pixel, maxi)
 
-for row in out:
+output = ''
+
+for row in ascii_img:
     for pixel in row:
         p = BRIGHTNESS[0]
-        if pixel > 0: p = BRIGHTNESS[int((MAX_BRIGHTNESS - 1) * pixel/maxi)]
+        if pixel > 0:
+            p = BRIGHTNESS[int((MAX_BRIGHTNESS - 1) * pixel/maxi)]
+        output += p
+    output += '\n'
 
-        if terminal_output:
-            print(p, end='')
-        else:
-            f.write(p)
-
-    if terminal_output: print()
-    else: f.write('\n')
+if terminal_output: print(output)
+else: f.write(output)

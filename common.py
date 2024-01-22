@@ -1,4 +1,3 @@
-
 def red(pixel):
     return pixel[0]
 
@@ -10,3 +9,6 @@ def blue(pixel):
 
 def grayscale(pixel):
     return int(pixel[0] * 0.3 + pixel[1] * 0.5 + pixel[2] * 0.2)
+
+def diff(pixel):
+    return max(pixel) - min(pixel)
