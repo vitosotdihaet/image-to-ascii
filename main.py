@@ -24,7 +24,7 @@ parser.add_argument("-c", "--compression", default=DEFAULT_COMPRESSION, type=flo
 # save ascii version to a file <image_name>.txt
 parser.add_argument("-s", "--save", action="store_true")
 # inverse BRIGHTNESS of symbols
-parser.add_argument("-b", "--inverse", action="store_true")
+parser.add_argument("-i", "--inverse", action="store_true")
 # coefficient of pixel width
 parser.add_argument("-w", "--width", default=DEFAULT_RATIO, type=float)
 
@@ -48,12 +48,13 @@ image = Image.open(target_img)
 exif = dict(image._getexif().items())
 orientation_id = 0x0112 # https://www.media.mit.edu/pia/Research/deepview/exif.html
 
-if exif[orientation_id] == 3:
-    image=image.rotate(180, expand=True)
-elif exif[orientation_id] == 6:
-    image=image.rotate(270, expand=True)
-elif exif[orientation_id] == 8:
-    image=image.rotate(90, expand=True)
+if orientation_id < len(exif):
+    if exif[orientation_id] == 3:
+        image=image.rotate(180, expand=True)
+    elif exif[orientation_id] == 6:
+        image=image.rotate(270, expand=True)
+    elif exif[orientation_id] == 8:
+        image=image.rotate(90, expand=True)
 
 
 width, height = image.size
@@ -62,16 +63,18 @@ width, height = int(100 * compression * args.width), int(height/(width/100) * co
 image = image.resize((width, height))
 image = image.convert('RGB')
 
-m = MatrixConstants.HORIZONTAL
+
+# TODO: create an ability to choose the matrix via arguments
+m = MatrixConstants.GAUSSIAN
+
+
 
 ascii_img = m.apply_on_image(image, func=diff)
 
-# mini = 10e9
 maxi = -10e9
 
 for row in ascii_img:
     for pixel in row:
-        # mini = min(pixel, mini)
         maxi = max(pixel, maxi)
 
 output = ''

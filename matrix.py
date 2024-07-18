@@ -33,7 +33,7 @@ class Matrix:
 
         # TODO: set first and last half pixels from each side
         return out
-    
+
     def __add__(self, other):
         if self.n != other.n:
             raise ValueError
@@ -54,7 +54,7 @@ class MatrixConstants:
         [0,  0, 0],
         [0,  1, 0],
     ])
-    SOME = Matrix([
+    GAUSSIAN = Matrix([
         [-1, -2,  1],
         [-2,  0,  2],
         [-1,  2,  1]
