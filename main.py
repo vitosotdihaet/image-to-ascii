@@ -7,85 +7,111 @@ from common import *
 from matrix import MatrixConstants
 
 
+
+# coefficient of a compression: example -- if compression is 0.5, the resolution goes from 1920x1080 to 960x540
 DEFAULT_COMPRESSION = 0.5
-DEFAULT_RATIO = 2.35
+# ratio of width multiplication (reason is char's height is bigger than their width)
+DEFAULT_WIDTH_RATIO = 2.35
 
 BRIGHTNESS = '8@#DZL]waxv?1(/|=+*":_-,.` '[::-1]
 MAX_BRIGHTNESS = len(BRIGHTNESS)
 
 
+
+def straighten_image(image: Image.Image):
+    exif = image.getexif() # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Exif
+    orientation_id = 0x0112 # https://www.media.mit.edu/pia/Research/deepview/exif.html
+
+    if orientation_id in exif: # there is an orientation info in metadata
+        # rotate an image
+        if exif[orientation_id] == 3:
+            image = image.rotate(180, expand=True)
+        elif exif[orientation_id] == 6:
+            image = image.rotate(270, expand=True)
+        elif exif[orientation_id] == 8:
+            image = image.rotate(90, expand=True)
+
 # parse arguments
-parser = argparse.ArgumentParser()
+def get_args():
+    parser = argparse.ArgumentParser()
 
-# path to an image file
-parser.add_argument("path")
-# coefficient of compression: example: if compression is 0.5, the resolution goes from 1920x1080 to 960x540
-parser.add_argument("-c", "--compression", default=DEFAULT_COMPRESSION, type=float)
-# save ascii version to a file <image_name>.txt
-parser.add_argument("-s", "--save", action="store_true")
-# inverse BRIGHTNESS of symbols
-parser.add_argument("-i", "--inverse", action="store_true")
-# coefficient of pixel width
-parser.add_argument("-w", "--width", default=DEFAULT_RATIO, type=float)
+    # path to an image file
+    parser.add_argument("path")
+    parser.add_argument("-c", "--compression", default=DEFAULT_COMPRESSION, type=float)
+    # save ascii version to a file <image_name>.txt
+    parser.add_argument("-s", "--save", action="store_true")
+    # inverse BRIGHTNESS of symbols
+    parser.add_argument("-i", "--inverse", action="store_true")
+    parser.add_argument("-w", "--width", default=DEFAULT_WIDTH_RATIO, type=float)
 
-args = parser.parse_args()
+    return parser.parse_args()
+
+
+
+args = get_args()
+
 
 
 # set variables to argument values
-target_img = Path(args.path)
-if not target_img.is_file():
+image_path = Path(args.path)
+if not image_path.is_file():
     print("The target image doesn't exist!")
     exit(1)
 
 compression = args.compression
 terminal_output = not args.save
-if args.inverse: BRIGHTNESS = BRIGHTNESS[::-1]
-if not terminal_output: f = open(target_img.name[:-4] + '.txt', 'w')
+
+if args.inverse:
+    BRIGHTNESS = BRIGHTNESS[::-1]
+
+if not terminal_output:
+    f = open(image_path.name[:-4] + '.txt', 'w')
 
 
-image = Image.open(target_img)
 
-exif = dict(image._getexif().items())
-orientation_id = 0x0112 # https://www.media.mit.edu/pia/Research/deepview/exif.html
+image = Image.open(image_path)
+straighten_image(image)
 
-if orientation_id < len(exif):
-    if exif[orientation_id] == 3:
-        image=image.rotate(180, expand=True)
-    elif exif[orientation_id] == 6:
-        image=image.rotate(270, expand=True)
-    elif exif[orientation_id] == 8:
-        image=image.rotate(90, expand=True)
 
 
 width, height = image.size
+ratio = height / width
 
-width, height = int(100 * compression * args.width), int(height/(width/100) * compression)
+# output width and height
+width = int(args.width * 100 * compression)
+height = int(ratio * 100 * compression)
+
 image = image.resize((width, height))
 image = image.convert('RGB')
 
 
-# TODO: create an ability to choose the matrix via arguments
+
+# TODO: make an ability to choose the matrix via arguments
 m = MatrixConstants.GAUSSIAN
 
 
+# TODO: make an ability to change the applying function
+matrix_applied_image = m.apply_on_image(image, func=grayscale)
 
-ascii_img = m.apply_on_image(image, func=diff)
 
-maxi = -10e9
 
-for row in ascii_img:
+# get max value to set up brightness 
+maxi = 0
+for row in matrix_applied_image:
     for pixel in row:
         maxi = max(pixel, maxi)
 
-output = ''
-
-for row in ascii_img:
+# map pixel values to ascii
+ascii_representation = ''
+for row in matrix_applied_image:
     for pixel in row:
-        p = BRIGHTNESS[0]
-        if pixel > 0:
-            p = BRIGHTNESS[int((MAX_BRIGHTNESS - 1) * pixel/maxi)]
-        output += p
-    output += '\n'
+        p = BRIGHTNESS[int((MAX_BRIGHTNESS - 1) * pixel / maxi)]
+        ascii_representation += p
+    ascii_representation += '\n'
 
-if terminal_output: print(output)
-else: f.write(output)
+
+
+if terminal_output:
+    print(ascii_representation)
+else:
+    f.write(ascii_representation)

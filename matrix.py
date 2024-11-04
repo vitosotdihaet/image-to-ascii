@@ -23,15 +23,23 @@ class Matrix:
 
         half = self.n // 2
 
+        maxi = 0
         for y in range(half, height - half):
             for x in range(half, width - half):
                 s = 0
 
+                # apply the matrix
                 for dy in range(-half, half + 1):
                     for dx in range(-half, half + 1):
                         s += func(img.getpixel((x + dx, y + dy))) * self.data[half + dy][half + dx]
 
                 out[y][x] = max(0, s / 9)
+                maxi = max(maxi, out[y][x])
+
+        # normalize
+        for y in range(half, height - half):
+            for x in range(half, width - half):
+                out[y][x] = out[y][x] / maxi
 
         return out
 
