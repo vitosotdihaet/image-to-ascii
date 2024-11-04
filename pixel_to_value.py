@@ -12,3 +12,12 @@ def grayscale(pixel):
 
 def diff(pixel):
     return max(pixel) - min(pixel)
+
+
+all = {
+    'red': red,
+    'green': green,
+    'blue': blue,
+    'grayscale': grayscale,
+    'diff': diff,
+}

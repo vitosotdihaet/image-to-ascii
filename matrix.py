@@ -1,6 +1,6 @@
 from PIL import Image
 
-from common import *
+from pixel_to_value import *
 
 from copy import copy
 
@@ -94,3 +94,10 @@ class MatrixConstants:
         [-2,  0,  2],
         [-1,  2,  1]
     ])
+
+    all = {
+        'unweighted': UNWEIGHTED,
+        'horizontal': HORIZONTAL,
+        'vertical': VERTICAL,
+        'gaussian': GAUSSIAN,
+    }

@@ -3,17 +3,16 @@ from pathlib import Path
 
 import argparse
 
-from common import *
-from matrix import MatrixConstants
+import pixel_to_value
+import matrix
 
 
 
-# coefficient of a compression: example -- if compression is 0.5, the resolution goes from 1920x1080 to 960x540
 DEFAULT_COMPRESSION = 0.5
-# ratio of width multiplication (reason is char's height is bigger than their width)
 DEFAULT_WIDTH_RATIO = 2.35
+DEFAULT_EDGE_FUNCTION = 'diff'
 
-BRIGHTNESS = '8@#DZL]waxv?1(/|=+*":_-,.` '[::-1]
+BRIGHTNESS = '8@#DZL]waxv?1(/|=+*\':_-,.` '[::-1]
 MAX_BRIGHTNESS = len(BRIGHTNESS)
 
 
@@ -35,14 +34,13 @@ def straighten_image(image: Image.Image):
 def get_args():
     parser = argparse.ArgumentParser()
 
-    # path to an image file
-    parser.add_argument("path")
-    parser.add_argument("-c", "--compression", default=DEFAULT_COMPRESSION, type=float)
-    # save ascii version to a file <image_name>.txt
-    parser.add_argument("-s", "--save", action="store_true")
-    # inverse BRIGHTNESS of symbols
-    parser.add_argument("-i", "--inverse", action="store_true")
-    parser.add_argument("-w", "--width", default=DEFAULT_WIDTH_RATIO, type=float)
+    parser.add_argument('path', type=str, help='Path to an image file')
+    parser.add_argument('-c', '--compression', default=DEFAULT_COMPRESSION, type=float, help='Coefficient of a compression: if compression is 0.5, the resolution goes from 1920x1080 to 960x540')
+    parser.add_argument('-i', '--inverse', action='store_true', help='Inverse the brightness')
+    parser.add_argument('-p', '--pixel_to_value_function', default=DEFAULT_EDGE_FUNCTION, type=str, help='A function to interpret colors as floats', choices=pixel_to_value.all.keys())
+    parser.add_argument('-e', '--edge_detection_matrix', default=DEFAULT_EDGE_FUNCTION, type=str, help='A matrix for edge detections', choices=matrix.MatrixConstants.all.keys())
+    parser.add_argument('-w', '--width', default=DEFAULT_WIDTH_RATIO, type=float, help='Ratio of width multiplication (reason is char\'s height is bigger than its width)')
+    parser.add_argument('-s', '--save', action='store_true', help='Save the output to a file <image_name>.txt')
 
     return parser.parse_args()
 
@@ -55,7 +53,7 @@ args = get_args()
 # set variables to argument values
 image_path = Path(args.path)
 if not image_path.is_file():
-    print("The target image doesn't exist!")
+    print('The target image doesn\'t exist!')
     exit(1)
 
 compression = args.compression
@@ -64,8 +62,11 @@ terminal_output = not args.save
 if args.inverse:
     BRIGHTNESS = BRIGHTNESS[::-1]
 
+pixel_to_value_function = pixel_to_value.all[args.pixel_to_value_function]
+edge_detection_matrix = matrix.MatrixConstants.all[args.edge_detection_matrix]
+
 if not terminal_output:
-    f = open(image_path.name[:-4] + '.txt', 'w')
+    f = open(image_path.stem + '.txt', 'w')
 
 
 
@@ -85,14 +86,7 @@ image = image.resize((width, height))
 image = image.convert('RGB')
 
 
-
-# TODO: make an ability to choose the matrix via arguments
-m = MatrixConstants.GAUSSIAN
-
-
-# TODO: make an ability to change the applying function
-matrix_applied_image = m.apply_on_image(image, func=grayscale)
-
+matrix_applied_image = edge_detection_matrix.apply_on_image(image, func=pixel_to_value_function)
 
 
 # get max value to set up brightness 
