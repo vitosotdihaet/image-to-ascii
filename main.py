@@ -7,21 +7,21 @@ import pixel_to_value
 import matrix
 
 
-
 DEFAULT_COMPRESSION = 0.5
 DEFAULT_WIDTH_RATIO = 2.35
-DEFAULT_EDGE_FUNCTION = 'diff'
+DEFAULT_PIXEL_TO_VALUE_FUNCTION = 'diff'
+DEFAULT_EDGE_FUNCTION = 'unweighted'
 
 BRIGHTNESS = '8@#DZL]waxv?1(/|=+*\':_-,.` '[::-1]
 MAX_BRIGHTNESS = len(BRIGHTNESS)
 
 
-
 def straighten_image(image: Image.Image):
-    exif = image.getexif() # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Exif
-    orientation_id = 0x0112 # https://www.media.mit.edu/pia/Research/deepview/exif.html
+    # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Exif
+    exif = image.getexif()
+    orientation_id = 0x0112  # https://www.media.mit.edu/pia/Research/deepview/exif.html
 
-    if orientation_id in exif: # there is an orientation info in metadata
+    if orientation_id in exif:  # there is an orientation info in metadata
         # rotate an image
         if exif[orientation_id] == 3:
             image = image.rotate(180, expand=True)
@@ -31,23 +31,29 @@ def straighten_image(image: Image.Image):
             image = image.rotate(90, expand=True)
 
 # parse arguments
+
+
 def get_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('path', type=str, help='Path to an image file')
-    parser.add_argument('-c', '--compression', default=DEFAULT_COMPRESSION, type=float, help='Coefficient of a compression: if compression is 0.5, the resolution goes from 1920x1080 to 960x540')
-    parser.add_argument('-i', '--inverse', action='store_true', help='Inverse the brightness')
-    parser.add_argument('-p', '--pixel_to_value_function', default=DEFAULT_EDGE_FUNCTION, type=str, help='A function to interpret colors as floats', choices=pixel_to_value.all.keys())
-    parser.add_argument('-e', '--edge_detection_matrix', default=DEFAULT_EDGE_FUNCTION, type=str, help='A matrix for edge detections', choices=matrix.MatrixConstants.all.keys())
-    parser.add_argument('-w', '--width', default=DEFAULT_WIDTH_RATIO, type=float, help='Ratio of width multiplication (reason is char\'s height is bigger than its width)')
-    parser.add_argument('-s', '--save', action='store_true', help='Save the output to a file <image_name>.txt')
+    parser.add_argument('-c', '--compression', default=DEFAULT_COMPRESSION, type=float,
+                        help='Coefficient of a compression: if compression is 0.5, the resolution goes from 1920x1080 to 960x540')
+    parser.add_argument('-i', '--inverse', action='store_true',
+                        help='Inverse the brightness')
+    parser.add_argument('-p', '--pixel_to_value_function', default=DEFAULT_PIXEL_TO_VALUE_FUNCTION,
+                        type=str, help='A function to interpret colors as floats', choices=pixel_to_value.all.keys())
+    parser.add_argument('-e', '--edge_detection_matrix', default=DEFAULT_EDGE_FUNCTION, type=str,
+                        help='A matrix for edge detections', choices=matrix.MatrixConstants.all.keys())
+    parser.add_argument('-w', '--width', default=DEFAULT_WIDTH_RATIO, type=float,
+                        help='Ratio of width multiplication (reason is char\'s height is bigger than its width)')
+    parser.add_argument('-s', '--save', action='store_true',
+                        help='Save the output to a file <image_name>.txt')
 
     return parser.parse_args()
 
 
-
 args = get_args()
-
 
 
 # set variables to argument values
@@ -69,10 +75,8 @@ if not terminal_output:
     f = open(image_path.stem + '.txt', 'w')
 
 
-
 image = Image.open(image_path)
 straighten_image(image)
-
 
 
 width, height = image.size
@@ -86,10 +90,11 @@ image = image.resize((width, height))
 image = image.convert('RGB')
 
 
-matrix_applied_image = edge_detection_matrix.apply_on_image(image, func=pixel_to_value_function)
+matrix_applied_image = edge_detection_matrix.apply_on_image(
+    image, func=pixel_to_value_function)
 
 
-# get max value to set up brightness 
+# get max value to set up brightness
 maxi = 0
 for row in matrix_applied_image:
     for pixel in row:
@@ -102,7 +107,6 @@ for row in matrix_applied_image:
         p = BRIGHTNESS[int((MAX_BRIGHTNESS - 1) * pixel / maxi)]
         ascii_representation += p
     ascii_representation += '\n'
-
 
 
 if terminal_output:
